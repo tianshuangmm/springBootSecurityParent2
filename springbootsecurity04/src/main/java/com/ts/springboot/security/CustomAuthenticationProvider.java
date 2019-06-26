@@ -3,6 +3,7 @@ package com.ts.springboot.security;
 import org.apache.tomcat.util.http.fileupload.RequestContext;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -21,6 +22,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     private CustomUserDetailsService customUserDetailsService;
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+
         UserDetails userDetails = null;
         //获取用户输入的用户名和密码
         String inputName = authentication.getName().trim();
@@ -30,10 +32,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         CustomWebAuthenticationDetails details = (CustomWebAuthenticationDetails) authentication.getDetails();
 
         String verifyCode = details.getVerifyCode().trim();
-
-        if(verifyCode!=null&&"".equals(verifyCode)&&!validateVerify(verifyCode)){
-            throw new BadCredentialsException("验证码输入错误!");
-        }else if(inputName!=null){
+        System.out.println("validateVerify(verifyCode)"+validateVerify(verifyCode));
+        if(verifyCode!=null&&!"".equals(verifyCode)&&validateVerify(verifyCode)){
             //userDetails为数据库中查询到的用户信息
             if(inputName!=null&&!"".equals(inputName)){
                 try{
@@ -51,7 +51,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
                 }else{
                     throw new BadCredentialsException("用户名输入错误输入错误！");
                 }
+            }else{
+                throw new BadCredentialsException("用户名输入为空！");
             }
+        }else {
+            throw new DisabledException("验证码输入错误!");
         }
 
         return new UsernamePasswordAuthenticationToken(inputName,inputPassword,userDetails.getAuthorities());

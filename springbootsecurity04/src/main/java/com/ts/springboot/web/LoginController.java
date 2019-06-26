@@ -32,6 +32,7 @@ public class LoginController {
     }
 
     @RequestMapping("/login")
+    //03异常处理
     public String showLogin(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
 
         //========================登录异常处理加的代码  一行代码加在websecurityconfig里面异常路径
@@ -41,7 +42,7 @@ public class LoginController {
 
         if (exception != null) {
             System.out.println(exception.toString());
-            request.setAttribute("exception", exception.getMessage().toString());
+            request.setAttribute("exception", exception.toString());
         }
         //===========================
         return "login.html";
@@ -60,5 +61,19 @@ public class LoginController {
     @PreAuthorize("hasRole('ROLE_USER')")
     public String printUser() {
         return "如果你看见这句话，说明你有ROLE_USER角色";
+    }
+
+    @RequestMapping("/admin1")
+    @ResponseBody
+    @PreAuthorize("hasPermission('/amin','r')")
+    public String printAdminR(){
+        return "如果你看见这句话，说明你访问/admin路径具有r权限";
+    }
+
+    @RequestMapping("/admin1/c")
+    @ResponseBody
+    @PreAuthorize("hasPermission('/admin','c')")
+    public String printAdminC(){
+        return "如果你看见这句话，说明你访问/admin路径具有c权限";
     }
 }

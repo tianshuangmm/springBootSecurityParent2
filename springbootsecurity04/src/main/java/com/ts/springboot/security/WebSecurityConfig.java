@@ -1,9 +1,11 @@
 package com.ts.springboot.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
@@ -72,7 +75,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 // 自定义登陆用户名和密码参数，默认为username和password
                 //usernameParameter("username")
                 //.passwordParameter("password")
-
+                //springSecurity验证表单登录  03过滤器器登录验证
                 .authenticationDetailsSource(authenticationDetailsSource)
                 .and()
                 //.addFilterBefore(new VerifyFilter(),UsernamePasswordAuthenticationFilter.class)
@@ -80,13 +83,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
                 //and().csrf().disable()                     // 关闭csrf防护
                 //自动登录
-                //当我们自动勾选自动登录时，会自动在cookie中保存一个
+                //当我们自动勾选自动登录时，会自动在cookie中保存一个  02- cookie存储
                 // 名为remember-me的cookie，默认有效期为2周，其值是一个加密的字符串
                 .and().rememberMe()
-                .tokenRepository(persistentTokenRepository())
-                //设置有效时间： 单位 s
-                .tokenValiditySeconds(6000)
-                .userDetailsService(userDetailsService);
+                       //上面一行加下面这些数据库存储
+                       .tokenRepository(persistentTokenRepository())
+                       //设置有效时间： 单位 s
+                       .tokenValiditySeconds(6000)
+                       .userDetailsService(userDetailsService);
 
 
         // 关闭CSRF跨域
@@ -103,10 +107,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private DataSource dataSource;
 
     @Bean
+    //在 WebSecurityConfig 中注入 dataSource ，创建一个 PersistentTokenRepository 的Bean
+    //数据库存储加  02-数据库存储
     public PersistentTokenRepository persistentTokenRepository() {
         JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
         jdbcTokenRepository.setDataSource(dataSource);
         return jdbcTokenRepository;
+    }
+
+    private CustomPermissionEvaluator customPermissionEvaluator;
+
+    public DefaultWebSecurityExpressionHandler webSecurityExpressionHandler(){
+        DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
+        handler.setPermissionEvaluator(customPermissionEvaluator);
+        return handler;
     }
 
 }

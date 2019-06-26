@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
 /*
 * 获取用户登录时携带的额外信息
+* webAuthenticationDetails 该类提供了获取用户登录时携带的额外信息的功能
+*                          默认提供了remoteAddress 与 sessionID信息
 * */
 //@Component
 public class CustomWebAuthenticationDetails extends WebAuthenticationDetails {
